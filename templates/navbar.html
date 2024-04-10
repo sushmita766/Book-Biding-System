@@ -1,0 +1,84 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+            aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}">Auctions</a>
+                </li>
+                {% if user.role == 'Seller' %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'auction-list' %}">My Items</a>
+                </li>
+                {% endif %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        Categories
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        {% for category in categories %}
+                        <li><a class="dropdown-item" href="{% url 'category-search' category.id %}">{{ category.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% if request.user.role == 'Buyer' %}
+                </li>
+                    <a class="nav-link" href="{% url 'collateral-home' %}" >Collateral</a>
+                <li>
+                    {% endif %}
+                </li>
+                {% if win_auction %}
+                    {% if order %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'payment' %}">My order</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'my-order' %}">My order</a>
+                    </li>
+                    {% endif %}
+                    
+
+                {% endif %}
+
+            </ul>
+
+            <form class="d-flex" action="{% url 'auction-search' %}" method="GET">
+                {% csrf_token %}
+                <input class="form-control me-2" type="search" name="q" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+
+            {% if user.is_authenticated %}
+            <div class="ms-3">
+                <span class="me-2">Welcome, <strong>{{ user.username }}</strong></span>
+                {% if user.role == 'Buyer' %}
+                <span class="me-2" id="collateral-limit">Your Limit: <strong>Rs. {{collateral}}</strong></span>
+                {% endif %}
+                <a type="button" role="button" href="{% url 'logout' %}" class="btn btn-outline-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                        class="bi bi-door-closed" viewBox="0 0 16 16">
+                        <path
+                            d="M3 2a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v13h1.5a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1H3V2zm1 13h8V2H4v13z" />
+                        <path d="M9 9a1 1 0 1 0 2 0 1 1 0 0 0-2 0z" />
+                    </svg>
+                    <span class="fs-6 fw-bold">Logout</span>
+                </a>
+            </div>
+            {% else %}
+            <a type="button" role="button" href="{% url 'login' %}" class="btn btn-outline-secondary ms-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                    class="bi bi-door-closed" viewBox="0 0 16 16">
+                    <path
+                        d="M3 2a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v13h1.5a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1H3V2zm1 13h8V2H4v13z" />
+                    <path d="M9 9a1 1 0 1 0 2 0 1 1 0 0 0-2 0z" />
+                </svg>
+                <span class="fs-6 fw-bold">Login</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</nav>

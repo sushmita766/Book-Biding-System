@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Collateral Management{% endblock %}
+
+{% block content %}
+{% include "navbar.html" %}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            {% if messages %}
+                <div class="messages">
+                {% for message in messages %}
+                    <div class="success {% if message.tags %}success-{{ message.tags }} {% endif %}" style="color: green;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title text-center">Collateral Management</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Collateral Balance: Rs. {{ request.user.collateral }}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted">Total Bidding Limit: Rs. {{ total_limit }}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted">Limit utilized: Rs. {{ utilized_collateral }}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted">Bidding Limit Left: Rs. {{ collateral }}</h6>
+                    {% if allowed_refund > 0 %}
+                    <h6 class="card-subtitle mb-2 text-muted">Allowed Refund: Rs. {{ allowed_refund }}</h6>
+                    {%else%}
+                    <h6 class="card-subtitle mb-2 text-muted">Allowed Refund: Rs. 0</h6>
+                    {%endif%}
+                    <hr>
+                    <form action="" method="post" onsubmit="return checkCollateral();">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <h5 class="card-title text-center">Add Collateral</h5>
+                            <label for="addCollateralAmount" class="form-label">Add Collateral Amount:</label>
+                            <input type="number" name="collateral" class="form-control" id="addCollateralAmount" name="add_collateral_amount" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Collateral</button>
+                        <div id="validation-messages" class="text-danger"></div>
+                    </form>
+                    <hr>
+                    <form action="{% url 'collateral-return' %}" method="post" onsubmit="return checkRefundCollateral();">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <h5 class="card-title text-center">Refund Collateral</h5>
+                            <label for="refundCollateralAmount" class="form-label">Refund Collateral Amount:</label>
+                            <input type="number" class="form-control" id="refundCollateralAmount" name="refund_collateral_amount" required>
+                            <label for="refundCollateralNumber" class="form-label">Enter Esewa Number:</label>
+                            <input type="number" class="form-control" id="refundCollateralNumber" name="refund_collateral_number" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Refund Collateral</button>
+                        <div id="refund-validation-messages" class="text-danger"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function checkCollateral() {
+        var amount = document.getElementById('addCollateralAmount').value;
+        if (parseFloat(amount) <= 100) {
+            document.getElementById('validation-messages').innerHTML = "The collateral amount must be greater than 100";
+            return false;
+        }
+        document.getElementById('amount').value = amount;
+        document.getElementById('total_amount').value = amount;
+        return true;
+    }
+
+    function checkRefundCollateral() {
+        var refundAmount = document.getElementById('refundCollateralAmount').value;
+        var refundNumber = document.getElementById('refundCollateralNumber').value;
+        var collateralBalance = parseFloat({{ allowed_refund }});
+
+        if (parseFloat(refundAmount) > collateralBalance) {
+            document.getElementById('refund-validation-messages').innerHTML = "Refund amount cannot exceed collateral balance";
+            return false;
+        }
+
+        if (refundNumber.length !== 10) {
+            document.getElementById('refund-validation-messages').innerHTML = "Enter a valid 10-digit number for Esewa";
+            return false;
+        }
+
+        return true;
+    }
+</script>
+{% endblock %}

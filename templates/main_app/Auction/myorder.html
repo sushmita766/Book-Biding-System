@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}My Win{% endblock %}
+
+{% block content %}
+{% include "navbar.html" %}
+
+<div class="container" style="max-width: 1000px">
+    <div class="col-12">
+        <h1 class="h2">My Win Item</h1>
+    </div>
+    <hr />
+</div>
+
+<div class="container" style="max-width: 1000px">
+    <div class="row g-3">
+        <div class="col-12 bg-light p-3 d-flex justify-content-between">
+            <div class="d-flex d-flex-inline">
+                <div class="pe-3">Win</div>
+                <!-- Add dropdown here if needed -->
+            </div>
+            <div class="text-end">
+                <div class="h6 fw-bold">Sub Total: Rs.<div id="subtotal" class="d-inline-flex">{{ total_price }}</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-12">
+            <table class="table table-bordered table-stripped" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Bid Amount</th>
+                        <th>Payment Staus</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td><a href="{{order.auction.get_absolute_url}}" class="text-decoration-none text-dark">{{ order.auction.title }}</a></td>
+                            <td>{{ order.auction.description|truncatechars:50 }}</td>
+                            <td>{{ order.auction.get_max_bid|default:""|floatformat:2 }}</td>
+                            <td>{{ order.payment_status }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="text-end">
+        <div class="">
+            <a class="btn btn-success fw-bold" type="button" id="payment-button" href="{% url 'checkout' %}">Checkout</a>
+        </div>
+    </div>
+</div>
+{% comment %} <script>
+    var config = {
+        // replace the publicKey with yours
+        "publicKey": "test_public_key_92ea4a949f5148b7bf698a38ad14ed11",
+        "productIdentity": "",
+        "productName": "Dragon",
+        "productUrl": "http://gameofthrones.wikia.com/wiki/Dragons",
+        "paymentPreference": [
+            "KHALTI",
+            "EBANKING",
+            "MOBILE_BANKING",
+            "CONNECT_IPS",
+            "SCT",
+            ],
+        "eventHandler": {
+            onSuccess (payload) {
+                // hit merchant api for initiating verfication
+                console.log(payload);
+            },
+            onError (error) {
+                console.log(error);
+            },
+            onClose () {
+                console.log('widget is closing');
+            }
+        }
+    };
+
+    var checkout = new KhaltiCheckout(config);
+    var btn = document.getElementById("payment-button");
+    btn.onclick = function () {
+        // minimum transaction amount must be 10, i.e 1000 in paisa.
+        checkout.show({amount: '{{ total_price }}'*100});
+    }
+</script> {% endcomment %}
+{% endblock %}

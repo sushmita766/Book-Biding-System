@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+{% include "navbar.html" %}
+
+<div class="container" style="max-width: 1000px">
+    <div class="col-12 text-center">
+        <h1 class="h2">Enter address for delivery</h1>
+        
+    </div>
+    <hr />
+    <div class="row d-flext justify-content-center">
+        <div class="col-8">
+            <form class="mx-1 mx-md-3" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="text-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                {% for field in form %}
+                
+                    <div class="d-flex flex-row align-items-center mb-3">
+                        <div class="form-outline flex-fill mb-0">
+                            <label class="form-label" for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                            </label>
+                            {% if field.name == 'start_datetime' or field.name == 'end_datetime' %}
+                                <input type="text" class="form-control datetimepicker" name="{{ field.name }}" value="{{ field.value|default:'' }}" />
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            {% if field.errors %}
+                                {% for error in field.errors %}
+                                    <div class="text-danger">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+                
+        
+                <div class="mx-4 mb-3 mb-lg-4 text-center">
+                    <button type="submit" class="btn btn-success btn-lg">Make Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    
+</div>
+
+{% endblock %}

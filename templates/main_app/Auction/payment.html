@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}My Win{% endblock %}
+
+{% block content %}
+{% include "navbar.html" %}
+
+<div class="container" style="max-width: 1000px">
+    <div class="col-12 text-center">
+        <h1 class="h2">Your order</h1>
+    </div>
+    <hr />
+</div>
+
+<div class="container" style="max-width: 1000px">
+    <div class="row g-3">
+        <div class="col-12 bg-light p-3 d-flex justify-content-between">
+            <div class="d-flex d-flex-inline">
+                <div class="h6 fw-bold">Pending amount</div>
+                <!-- Add dropdown here if needed -->
+            </div>
+            <div class="text-end">
+                <div class="h6 fw-bold ">Sub Total: Rs.<div id="subtotal" class="d-inline-flex">{{ total_price }}</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-12">
+            <table class="table table-bordered table-stripped" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Bid Amount</th>
+                        <th>Payment Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td><a href="{{order.auction.get_absolute_url}}" class="text-decoration-none text-dark">{{ order.auction.title }}</a></td>
+                            <td>{{ order.auction.description|truncatechars:50 }}</td>
+                            <td>{{ order.auction.get_max_bid|default:""|floatformat:2 }}</td>
+                            <td>{{order.payment_status}}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if order.payment_status == 'pending' %}
+    <div class="row g-3 ">
+        <div class="col-12 text-center">
+            <h1 class="h2">Shipping details</h1>
+        </div>
+    </div>
+    <div class="row g-3 mt-2">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Address Details</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Customer Name:</strong> {{order.user.username}}</li>
+                        <li class="list-group-item"><strong>Email:</strong> {{order.user.email}}</li>
+                        <li class="list-group-item"><strong>Address:</strong>{{order.address}}</li>
+                        <li class="list-group-item"><strong>Phone Number:</strong>{{order.phone_number}}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+     {% comment %} <div class="text-center mt-3">
+        <div class="">
+            <a class="btn btn-success fw-bold" type="button" href={%url "khalti-initiate" %}>Pay With Khalti</a>
+        </div>
+    </div>  {% endcomment %}
+    <div class="text-center mt-3">
+        <form action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
+            <input type="hidden" id="amount" name="amount" value="{{order.total_amount}}" required>
+            <input type="hidden" id="tax_amount" name="tax_amount" value ="0" required>
+            <input type="hidden" id="total_amount" name="total_amount" value="{{order.total_amount}}" required>
+            <input type="hidden" id="transaction_uuid" name="transaction_uuid" value="{{uuid}}" required>
+            <input type="hidden" id="product_code" name="product_code" value ="EPAYTEST" required>
+            <input type="hidden" id="product_service_charge" name="product_service_charge" value="0" required>
+            <input type="hidden" id="product_delivery_charge" name="product_delivery_charge" value="0" required>
+            <input type="hidden" id="success_url" name="success_url" value="http://127.0.0.1:8000/esewa/success" required>
+            <input type="hidden" id="failure_url" name="failure_url" value="http://127.0.0.1:8000/payment" required>
+            <input type="hidden" id="signed_field_names" name="signed_field_names" value="total_amount,transaction_uuid,product_code" required>
+            <input type="hidden" id="signature" name="signature" value="{{signature}}" required>
+            <input value="Make Payment" type="submit" class="btn btn-success fw-bold" >
+        </form>
+    </div>
+    {% else %}
+    <div class="text-center mt-3">
+        <div class="col-12 text-center">
+            <h1 class="h2">Your order has been shipped</h1>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+
+{% endblock %}

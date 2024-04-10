@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+
+<div class="conatiner p-3">
+    <div class="row pt-4">
+        <div class="col-6">
+            <h2 class="text-primary">Category List</h2>
+        </div>
+        <div class="col-6 text-end">
+            <a href="{% url 'category-create' %}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> &nbsp; Create New Category</a>
+        </div>
+    </div>
+</div>
+<br />
+<br />
+<table class="table table-bordered table-stripped" style="width:100%">
+    <thead>
+        <tr>
+            <th>
+                Category Name
+            </th>
+            <th>
+                Description
+            </th>
+            <th>
+                IsActive?
+            </th>
+            <th>
+
+            </th>
+            <th>
+
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+       {% for category in category_list%}
+           <tr>
+               <td>
+                  {{category.name}}
+               </td>
+               <td>
+                  {{category.description}}
+               </td>
+               <td>
+                   {{category.is_active}}
+               </td>
+               <td>
+                   <div class="w-100 btn-group">
+                           <a href = "{% url 'category-update' category.id %}" class="btn btn-primary mx-2 "><i class="bi bi-pencil-square"></i>Edit</a>
+                   </div>
+               </td>
+                <td>
+                    <div class="w-100 btn-group">
+                        <button class="btn btn-danger mx-2" onclick="confirmDelete({{ category.id }})">
+                            <i class="bi bi-trash-fill"></i> Delete
+                        </button>
+                    </div>
+                </td>
+           </tr> 
+        {% endfor %}
+    </tbody>
+</table>
+<script>
+    function confirmDelete(categoryId) {
+        if (confirm('Are you sure you want to delete?')) {
+            // Redirect to the delete view or make an AJAX request to update is_active
+            window.location.href = "{% url 'category-delete' pk=0 %}".replace('0', categoryId);
+        }
+    }
+</script>
+{% endblock %}
+
+

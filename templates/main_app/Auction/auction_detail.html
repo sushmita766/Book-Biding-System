@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Auction Detail{% endblock %}
+{% block content %}
+  {% include "navbar.html" %}
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-8">
+        <h2>{{ auction.title }}</h2>
+        <img src="{{ auction.image.url }}" alt="{{ auction.title }}" class="img-fluid mb-4" style="object-fit: contain; max-height: 400px;">
+        <p class="lead">{{ auction.description }}</p>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Auction Details</h5>
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item">Starting Price: Rs.{{ auction.starting_price }}</li>
+              <li class="list-group-item">Marked Price: Rs.{{ auction.marked_price }}</li>
+              <li class="list-group-item" id="current-highest-bid">Current Highest Bid: Rs.{{ auction.get_max_bid|default:""|floatformat:2 }}</li>
+              <li class="list-group-item" id="current-highest-bidder">Highest Bidder: {{ auction.get_higest_bidder }}</li>
+              <li class="list-group-item">Seller: {{ auction.seller }}</li>
+              <li class="list-group-item">Category: {{ auction.category }}</li>
+              <li class="list-group-item" id="auction-status">Status: {{ auction.get_auction_status_display }}</li>
+              {% if auction.auction_status == 'open' %}
+                  <li class="list-group-item" id="countdown">Time left: {{ auction.get_remaining_time|date:"H:i" }}</li>
+              {% endif %}
+              {% if auction.auction_status == 'closed' %}
+                  <li class="list-group-item">Winner: {{ auction.winner.username|default:"" }}</li>
+              {% endif %}
+          </ul>
+          </div>
+        </div>
+
+        {% if request.user.role == 'Buyer' and auction.auction_status == 'open' %}
+        
+
+        <!-- Bid Form -->
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Place a Bid</h5>
+            <form method="post" action="" id="bid-form" name="bid">
+              {% csrf_token %}
+              {% for field in form %}
+              <div class="form-group">
+                <label class="form-label" for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                </label>
+                {{field}}
+              </div>
+              {% endfor %}
+              <button type="submit" class="btn btn-primary">Submit Bid</button>
+            </form>
+            <!-- Display validation messages here -->
+            <div id="validation-messages" class="text-danger"></div>
+          </div>
+        </div>
+        {% endif %}
+        
+        <!-- End Bid Form -->
+      </div>
+    </div>
+  </div>
+ 
+  <script>
+  var value; // for temporaliy storing bid value and later compare it with next bid value
+  
+  let url = `ws://${window.location.host}/ws/auction/{{ auction.id }}/`;
+  const auctionSocket = new WebSocket(url);
+
+  auctionSocket.onopen = function (){
+    console.log('WebSocket connection opened.');
+
+}
+
+
+auctionSocket.onmessage = function (e) {
+  const data = JSON.parse(e.data);
+  console.log('Data', data);
+
+  if (data.type === 'time_update') {
+    const remainingTime = data.remaining_time;
+    // Update the countdown using the function
+    if ("{{ auction.auction_status }}" === 'open'){
+      updateCountdown(remainingTime);
+    }
+    
+  } else if (data.type === 'bid_update') {
+    // Handle bid update logic
+    const bidValue = Number(data.bid_value);
+    console.log(data.collateral)
+    document.getElementById('current-highest-bid').innerText = `Current Highest Bid: Rs.${bidValue.toFixed(2)}`;
+    document.getElementById('current-highest-bidder').innerText = `Highest Bidder: ${data.highest_bidder}`;
+    document.getElementById('collateral-limit').innerHTML = `Your Limit: <strong>Rs. ${data.collateral.toFixed(2)}</strong>`;
+
+    const remainingTime = data.remaining_time;
+    updateCountdown(remainingTime);
+  } else if (data.type === 'auction_status_update') {
+    // Handle auction status update
+    if (data.status === 'success') {
+      // Auction status updated successfully
+      console.log('Auction status updated successfully');
+    } else {
+      // Auction status update failed, handle the error
+      console.error('Error updating auction status:', data.message);
+    }
+  }
+};
+  //for countdown time
+  const countdownElement = document.getElementById('countdown');
+  
+
+  function updateCountdown(remainingTime){
+    // Clear previous interval to avoid multiple intervals
+
+    // Set up a new interval to update the countdown every second
+    const countdownInterval = setInterval(function () {
+      const days = Math.floor(remainingTime / (60 * 60 * 24));
+      const hours = Math.floor((remainingTime % (60 * 60 * 24)) / (60 * 60));
+      const minutes = Math.floor((remainingTime % (60 * 60)) / 60);
+      const seconds = Math.floor(remainingTime % 60);
+
+      // Use the pad function to ensure consistent two-digit formatting
+      const pad = (num) => (num < 10 ? `0${num}` : num);
+
+      // Format the time components with consistent two-digit formatting
+      const formattedTime = `${pad(days)}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`;
+
+      // Update the countdown with the formatted time
+      countdownElement.textContent = `Time left: ${formattedTime}`;
+
+      // Decrease the remaining time by one second
+      remainingTime--;
+
+      // Stop the interval when remainingTime reaches 0
+      if (remainingTime < 0) {
+        clearInterval(countdownInterval);
+      }
+    }, 1000); // Update every second
+  }
+    
+
+  // Function to submit a bid
+function submitBid(event) {
+  event.preventDefault(); // Prevent the default form submission
+
+  let bidValue = document.getElementById('id_bid_value').value;
+  let bidder ="{{ user.username }}";
+
+  var collateralLimitElement = document.getElementById("collateral-limit");
+  
+  var collateralText = collateralLimitElement.querySelector("strong").textContent;
+
+  // Extract the numerical value from the text content (assuming the format "Rs. 12345")
+  var collateral2 = parseInt(collateralText.split("Rs. ")[1]);
+
+  // Perform client-side validation
+  let validationMessages = document.getElementById('validation-messages');
+  validationMessages.innerHTML = ''; // Clear previous messages
+  
+  // Additional validation for bid length
+  if (bidValue.length > 8) {
+    validationMessages.innerText = 'Bid value cannot be greater than 8 digits.';
+    document.getElementById('id_bid_value').value = '';
+    return;
+  }
+
+  if (parseFloat(bidValue) <= parseFloat('{{ auction.starting_price }}')) {
+    validationMessages.innerText = 'Bid value must be greater than the starting price.';
+    document.getElementById('id_bid_value').value = '';
+    return;
+  }
+  if (parseFloat(bidValue) <= parseFloat('{{ auction.get_max_bid }}')) {
+    validationMessages.innerText = 'Bid value must be greater than the current highest price.';
+    document.getElementById('id_bid_value').value = '';
+    return;
+  }
+  if (parseFloat(bidValue) <= parseFloat(value)) {
+    validationMessages.innerText = 'Bid value must be greater than the current highest price.';
+    document.getElementById('id_bid_value').value = '';
+    return;
+  }
+  if (parseFloat(bidValue) > (parseFloat('{{collateral}}')+parseFloat('{{user_highest_bid}}'))) {
+    validationMessages.innerText = "You don't have enough collateral ";
+    document.getElementById('id_bid_value').value = '';
+    return;
+  }
+  
+
+  let formData = new FormData(document.getElementById('bid-form'));
+
+  fetch(window.location.pathname, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRFToken': '{{ csrf_token }}',
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      // Reset the form elements
+      document.getElementById('id_bid_value').value = '';
+    })
+    
+    .catch((error) => {
+      console.error('Error submitting bid:', error);
+      validationMessages.innerText = 'Error submitting bid. Please try again.';
+    });
+    console.log(bidder)
+    var user = "{{request.user.id}}";
+  auctionSocket.send(JSON.stringify({
+    bidValue: bidValue,
+    bidder:bidder,
+    collateral:collateral2,
+    user:user,
+    
+  }));
+  value = bidValue
+}
+
+  // Attach the submitBid function to the form's onsubmit event
+  const bidForm = document.getElementById('bid-form');
+  if (bidForm) {
+  document.getElementById('bid-form').onsubmit = submitBid;
+  }
+
+  // Function to send a request to update auction status when the end time is reached
+  let statusUpdated = false;
+  function checkEndTime() {
+    const now = new Date();
+    console.log(now);
+    const auctionId = {{ auction.id|default:0 }};
+    const endTime = new Date("{{ auction.end_datetime|date:'Y-m-d H:i:s' }}");
+  
+    if (now >= endTime) {
+      let statusUpdated = true;
+        // Auction has ended, send a request to update the auction status
+        fetch(`update/status/{{ auction.id }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({ auction_id: {{ auction.id }} }),
+        })
+        .then((response) => {
+            console.log('Server Response:', response);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then((data) => {
+            // Optionally handle the response data
+            if (data.status === 'success') {
+                // Auction status updated successfully
+                
+                location.reload();
+                console.log('Auction status updated successfully');
+            } else {
+                // Auction status update failed, handle the error
+                console.error('Error updating auction status:', data.message);
+            }
+        })
+        .catch((error) => {
+            console.error('Error updating auction status:', error);
+        });
+        clearInterval(countdownInterval); // Stop the interval
+    }
+}
+console.log('{{auction.auction_status}}')
+if('{{auction.auction_status}}'==='open'){//to ensure the function run only for the open auction 
+  // Call checkEndTime to initiate the check when the page loads
+  const countdownInterval = setInterval(checkEndTime, 1000);}
+
+  </script>
+  
+{% endblock %}

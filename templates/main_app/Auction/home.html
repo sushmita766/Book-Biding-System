@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Home{% endblock %}
+{% block content %}
+{% include "navbar.html" %}
+
+<div class="container-fluid text-center py-4">
+    <h2 class="display-4">{{ header }}</h2>
+</div>
+
+<section class="container">
+    <!-- Recommended Auctions -->
+    <div class="row">
+        
+        {% if recommended_auctions and request.user.role == 'Buyer' %}
+        <div class="col-md-12">
+            <h3 class="text-center mb-4">Recommended For You</h3>
+        </div>
+            {% for auction in recommended_auctions %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 {% if request.user == auction.seller %}seller-own-product{% endif %}">
+                    <a href="{{auction.get_absolute_url}}">
+                        <img src="{{ auction.image.url }}" alt="Auction Image" class="card-img-top img-fluid" style="object-fit: contain; height: 200px;">
+                    </a>
+                    <div class="card-body">
+                        <p class="text-muted">Seller: <b>{{ auction.seller }}</b></p>
+                        <a href="{{auction.get_absolute_url}}" class="card-link">
+                            <h5 class="card-title">{{ auction.title }}</h5>
+                        </a>
+                        <p class="card-text">{{ auction.description|truncatewords:20 }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="text-success font-weight-bold">
+                                Starting Price: Rs.{{ auction.starting_price }}
+                            </span>
+                        </div>
+                        <div class="text-success font-weight-bold" id="countdown_{{auction.id}}">
+                            <i class="far fa-clock"></i> Time left: <span class="countdown"></span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        Categories:
+                        <b>{{ auction.category }}</b>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    <!-- Other Auctions -->
+    <div class="row mt-4">
+        {% if recommended_auctions and request.user.role == 'Buyer' %}
+        <div class="col-md-12">
+            <h3 class="text-center mb-4">Other Auctions</h3>
+        </div>
+        {% endif %}
+        {% for auction in auctions %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 {% if request.user == auction.seller %}seller-own-product{% endif %}">
+                <a href="{{auction.get_absolute_url}}">
+                    <img src="{{ auction.image.url }}" alt="Auction Image" class="card-img-top img-fluid" style="object-fit: contain; height: 200px;">
+                </a>
+                <div class="card-body">
+                    <p class="text-muted">Seller: <b>{{ auction.seller }}</b></p>
+                    <a href="{{auction.get_absolute_url}}" class="card-link">
+                        <h5 class="card-title">{{ auction.title }}</h5>
+                    </a>
+                    <p class="card-text">{{ auction.description|truncatewords:20 }}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-success font-weight-bold">
+                            Starting Price: Rs.{{ auction.starting_price }}
+                        </span>
+                    </div>
+                    <div class="text-success font-weight-bold" id="countdown2_{{auction.id}}">
+                        <i class="far fa-clock"></i> Time left: <span class="countdown"></span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    Categories:
+                    <b>{{ auction.category }}</b>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<script src="{% static 'js/auction_home.js' %}">
+    
+</script>
+
+{% endblock %}

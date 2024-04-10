@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+{% include "navbar.html" %}
+
+<div class="container-fluid text-center py-4">
+    <h2 class="display-4">{{ header }}</h2>
+</div>
+
+<section class="container" style="background-color: #eee;">
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <a href="#">
+                    <img src="{{product.image.url}}" alt="Product Image" class="card-img-top img-fluid" style="object-fit: contain; height: 200px;">
+                </a>
+                <div class="card-body">
+                    <a href="#" class="card-link">
+                        <h5 class="card-title">{{ product.title }}</h5>
+                    </a>
+                    <p class="text-muted">Seller: <b>{{product.seller}}</b></p>
+                    <p class="card-text">{{ product.description }}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-primary font-weight-bold">Price: ${{ product.price }}</span>   
+                    </div>
+                </div>
+                <div class="card-footer">
+                    Categories:
+                    <b>{{product.category}}</b>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+</section>
+
+{% endblock %}

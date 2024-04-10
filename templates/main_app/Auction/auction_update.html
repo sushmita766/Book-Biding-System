@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Auctions{% endblock %}
+
+{% block content %}
+{% include "../../navbar.html" %}
+<section class="" style="background-color: #eee;">
+    <div class="container h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-lg-12 col-xl-11">
+                <div class="card text-black" style="border-radius: 25px;">
+                    <div class="card-body p-md-3">
+                        <div class="row justify-content-center">
+                            <div class="col-md-10 col-lg-8 col-xl-7 order-2 order-lg-1">
+
+                                <p class="text-center h1 fw-bold mb-4 mx-1 mx-md-4 mt-4">Create Auction</p>
+
+                                <form class="mx-1 mx-md-3" method="post" enctype = 'multipart/form-data'>
+                                    {% csrf_token %}
+                                    {% if form.non_field_errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.non_field_errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    {% for field in form %}
+                                        <div class="d-flex flex-row align-items-center mb-3">
+                                            <div class="form-outline flex-fill mb-0">
+                                                <label class="form-label" for="{{ field.id_for_label }}">
+                                                    {{ field.label }}
+                                                </label>
+                                                {% if field.name == 'start_datetime' %}
+                                                    <input type="text" class="form-control datetimepicker" name="{{ field.name }}" value="{{ auction.start_datetime|date:'Y-m-d H:i' }}" />
+                                                {% elif field.name == 'end_datetime' %}
+                                                    <input type="text" class="form-control datetimepicker" name="{{ field.name }}" value="{{ auction.end_datetime|date:'Y-m-d H:i' }}" />
+                                                {% else %}
+                                                    {{ field }}
+                                                {% endif %}
+                                                {% if field.errors %}
+                                                    <div class="text-danger">
+                                                        {{ field.errors|join:", " }}
+                                                    </div>
+                                                {% endif %}
+                                                
+                                            </div>
+                                        </div>
+                                    {% endfor %}    
+                            
+                                    <div class="mx-4 mb-3 mb-lg-4">
+                                        <button type="submit" class="btn btn-primary btn-lg">Update</button>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr('.datetimepicker', {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true
+        });
+    });
+</script>
+{% endblock %}

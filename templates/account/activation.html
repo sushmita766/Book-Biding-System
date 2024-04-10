@@ -1,0 +1,32 @@
+
+
+{% block content %}
+<section class="vh-100" style="background-color: #eee;">
+    <div class="container h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-6">
+                <div class="card text-black" style="border-radius: 25px;">
+                    <div class="card-body p-md-3">
+                        <div class="row justify-content-center">
+                            <div class="col-md-10 col-lg-16 col-xl-5 order-2 order-lg-1">
+
+                                <p class="text-center h1 fw-bold mb-4 mx-1 mx-md-5 mt-2">Account Activation</p>
+
+                                <div class="alert alert-success" role="alert">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    A confirmation email has been sent to your email address. Please check your inbox and click the activation link to activate your account.
+                                </div>
+
+                                <p class="text-center mb-3">
+                                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Go to Login Page</a>
+                                </p>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
