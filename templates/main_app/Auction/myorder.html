@@ -54,7 +54,7 @@
         </div>
     </div>
 </div>
-{% comment %} <script>
+ <script>
     var config = {
         // replace the publicKey with yours
         "publicKey": "test_public_key_92ea4a949f5148b7bf698a38ad14ed11",
@@ -88,5 +88,5 @@
         // minimum transaction amount must be 10, i.e 1000 in paisa.
         checkout.show({amount: '{{ total_price }}'*100});
     }
-</script> {% endcomment %}
+</script>
 {% endblock %}
